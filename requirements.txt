@@ -1,0 +1,5 @@
+numpy
+torch
+pandas
+pytorch_lightning
+scikit_learn
