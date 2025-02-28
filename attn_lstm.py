@@ -4,9 +4,9 @@ from utils import ACTIVATION_MAP, RNN_MAP
 
 
 class MultiHeadAttentionLSTM(nn.Module):
-    def __init__(self, cell, sequence_len, feature_num, hidden_dim,
-                 fc_layer_dim, rnn_num_layers, output_dim, fc_activation,
-                 attention_order, feature_head_num=None, sequence_head_num=None,
+    def __init__(self, cell = 'lstm', sequence_len=30, feature_num=24, hidden_dim=100,
+                 fc_layer_dim=100, rnn_num_layers=3, output_dim=1, fc_activation='relu',
+                 attention_order=[], feature_head_num=4, sequence_head_num=None,
                  fc_dropout=0, rnn_dropout=0, bidirectional=False, return_attention_weights=False):
         super().__init__()
         assert cell in ['rnn', 'lstm', 'gru']

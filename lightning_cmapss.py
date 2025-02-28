@@ -4,7 +4,7 @@ from CMAPSSDataset import CMAPSSDataset
 from attn_lstm import MultiHeadAttentionLSTM
 from torch.nn import functional as F
 import pandas as pd
-from torchmetrics import MeanSquaredError
+from pytorch_lightning.metrics.functional import mean_squared_error
 from metrics import score
 
 
@@ -13,18 +13,12 @@ class Module(pl.LightningModule):
         super(Module, self).__init__()
         self.net = MultiHeadAttentionLSTM(**kwargs)
         self.lr = lr
-        self.val_step_outputs = []
-        self.test_step_outputs = []
-        # print(self.net)
-        # print('lr', self.lr)
 
     def forward(self, x):
         return self.net(x)
 
     def training_step(self, batch, batch_idx):
         x, y, _ = batch
-        # print('x', x)
-        # print('y', y)
         x = self.net(x)
         loss = F.mse_loss(x, y)
         self.log('train_rmse', torch.sqrt(loss), prog_bar=True)
@@ -34,31 +28,25 @@ class Module(pl.LightningModule):
         x, y, _ = batch
         x = self.net(x)
         loss = F.mse_loss(x, y, reduction='sum')
-        loss = torch.tensor([loss.item(), len(y)])
-        self.val_step_outputs.append(loss)
-        return loss
+        return torch.tensor([loss.item(), len(y)])
 
     def test_step(self, batch, batch_idx, reduction='sum'):
         x, y, id = batch
         x = self.net(x)
-        pred = torch.cat([id, x, y], dim=1)
-        self.test_step_outputs.append(pred)
-        return pred
+        return torch.cat([id, x, y], dim=1)
 
-    def on_test_epoch_end(self):
-        t = torch.cat(self.test_step_outputs, dim=0)
+    def test_epoch_end(self, step_outputs):
+        t = torch.cat(step_outputs, dim=0)
         t = t.cpu()
-        rmse = torch.sqrt(MeanSquaredError(t[:, 1], t[:, 2]))
+        rmse = torch.sqrt(mean_squared_error(t[:, 1], t[:, 2]))
         s = score(t[:, 1], t[:, 2])
         self.log('test_rmse', rmse)
         self.log('test_score', s)
-        self.test_step_outputs.clear()
 
-    def on_validation_epoch_end(self,):
-        t = torch.stack(self.val_step_outputs)
+    def validation_epoch_end(self, val_step_outputs):
+        t = torch.stack(val_step_outputs)
         t = torch.sum(t, dim=0)
         self.log('val_rmse', torch.sqrt(t[0] / t[1]), prog_bar=True)
-        self.val_step_outputs.clear()
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
@@ -94,8 +82,6 @@ if __name__ == '__main__':
     parser.add_argument('--lr', type=float, default=2e-4)
     parser.add_argument('--patience', type=int, default=50, help='Early Stop Patience')
     parser.add_argument('--max-epochs', type=int, default=500)
-    parser.add_argument('--accelerator', default=None)
-    parser.add_argument('--devices', default=None)
     parser.add_argument('--no-cuda', action='store_true', default=False, help='disables CUDA training')
     args = parser.parse_args()
     model_kwargs = {
@@ -146,7 +132,8 @@ if __name__ == '__main__':
     )
 
     trainer = pl.Trainer(
-        default_root_dir='../checkpoints',
+        default_root_dir='./checkpoints',
+        gpus=1 if not args.no_cuda else None,
         max_epochs=args.max_epochs,
         callbacks=[early_stop_callback, checkpoint_callback],
         # checkpoint_callback=False,
@@ -154,4 +141,4 @@ if __name__ == '__main__':
         # progress_bar_refresh_rate=0
     )
     trainer.fit(model, train_loader, val_dataloaders=valid_loader or test_loader)
-    trainer.test(dataloaders=test_loader)
+    trainer.test(test_dataloaders=test_loader)

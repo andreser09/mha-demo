@@ -394,7 +394,10 @@ class CMAPSSDataset(Dataset):
         # set self.df
         self.df = data_df
         if len(self.df.columns) >= 26:
-            self.df = self.df.drop([26, 27], axis=1)
+            try:
+                self.df = self.df.drop([26, 27], axis=1)
+            except:
+                print("26 columns")
         self.df.columns = CMAPSSDataset.DATASET_COLS
         # print('init', self.df)
         # sequence_len
