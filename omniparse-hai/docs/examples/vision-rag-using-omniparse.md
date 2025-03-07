@@ -1,2 +1,0 @@
-# Vision RAG using OmniParse
-

@@ -1,1 +1,6 @@
-pytorch_lightning==1.1.4
+pytorch_lightning==2.5.0.post0
+torch==2.5.1+cu124
+numpy==1.26.4
+pandas==2.2.2
+sklearn==1.6.1
+torchmetrics==1.6.2

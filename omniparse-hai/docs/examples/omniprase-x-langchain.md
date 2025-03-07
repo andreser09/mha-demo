@@ -1,2 +1,0 @@
-# OmniPrase x Langchain
-

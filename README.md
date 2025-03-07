@@ -12,25 +12,11 @@ The code:
 
 ## Prerequisites
 
-- Python: 3.8+
-- Dependencies (install via pip):
-  pip install pytorch_lightning
+- pip install -r requirements.txt
 - Hardware: CPU or GPU (CUDA-enabled if using GPU).
 - Files:
   - Trained model checkpoint (e.g., checkpoint.ckpt).
   - Normalization parameters (e.g., FD001_params.npy) from training.
-
-Setup
-
-1. Clone the Repository:
-
-2. Build with Dockerfile inside Omniparse-hai folder.
-   There are some difficulties with flash_attn and getting the dependencies right
-   I managed to get it to run using this Dockerfile configuration from other project using a T4 gpu
-   with nvidia-driver-535-server which has cuda 12.4, but in the docker using cuda 11.8.
-   
-
-3. Inside the docker run predict.py
 
 ## Code Structure
 
@@ -55,9 +41,11 @@ The model expects data in the CMAPSS format:
             'farb', 'htbleed', 'nf_dmd', 'pcnfr_dmd', 'w31', 'w32'] (26 total).
 - Description:
   - engine_id: Engine/unit identifier (integer).
-  - timestamp: Time step (integer, incrementing per engine).
+  - timestamp: Time step (integer)
   - alt, tra, mach: operational conditions
   - the rest: sensor readings
 
 Example row:
 [1, 1, 0.5, 0.6, 0.7, 0.05, 0.1, ..., 1.0]
+
+Output: a number thats consistent with the time step, if the timestamp is hourly the output is the amount of hours
