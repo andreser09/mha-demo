@@ -1,5 +1,5 @@
-pytorch_lightning==2.5.0.post0
-torch==2.5.1+cu124
+pytorch_lightning==2.5.0.post0 ## the post0 specification is for the tested environment
+torch==2.5.1+cu124 ## the cuda specification is for the tested environment
 numpy==1.26.4
 pandas==2.2.2
 sklearn==1.6.1

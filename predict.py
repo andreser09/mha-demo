@@ -86,24 +86,43 @@ def predict_rul(new_row):
 
     return rul_pred.item()
 
-# Example
-# Generate 50 rows of data for one engine (engine_id=0001)
-stream_data = []
+### Code to call the API and load sensor data here
+# One API call for every sensor_id for every equipment_id for a given timestamp
+# append in the right order (see predict_rul function) to create a new_row
+# Append row to stream_data
+# Engine_id must be an integer (in the dataset it's numbered and each engine_id is unique)
+# Timestamps is an integer too, the 0 is the time where the dataset starts
 
-for t in range(1, 51):
-    row = [
-        1,  # id
-        t,  # timestamp -> convert to integer. The dataset is hourly so the RUL is the hours remaining
-        0.5 + np.random.randn() * 0.01,  # op1
-        0.6 + np.random.randn() * 0.01,  # op2
-        0.7 + np.random.randn() * 0.01,  # op3
-    ]
-    # 21 sensor values with slight upward trend and noise
-    sensors = [np.random.randn() * 0.1 + (i * 0.05 + t * 0.001) for i in range(1, 22)]
-    row.extend(sensors)
-    stream_data.append(row)
+# Buffer to store sequences per engine id
+sequence_buffer = defaultdict(lambda: deque(maxlen=sequence_len))
 
 # Real-time prediction loop
+stream_data = []
 for row in stream_data:
     rul = predict_rul(row)
     print(f"Engine ID: {int(row[0])}, Time: {int(row[1])}, Predicted RUL: {rul:.2f}")
+
+
+
+
+
+# EXAMPLE
+# Generate 50 rows of data for one engine (engine_id=0001)
+# stream_data = []
+
+# for t in range(1, 51):
+#     row = [
+#        1,  # id
+#        t,  # timestamp -> convert to integer. The dataset is hourly so the RUL is the hours remaining
+#        0.5 + np.random.randn() * 0.01,  # op1
+#        0.6 + np.random.randn() * 0.01,  # op2
+#        0.7 + np.random.randn() * 0.01,  # op3
+#    ]
+    # 21 sensor values with slight upward trend and noise
+#    sensors = [np.random.randn() * 0.1 + (i * 0.05 + t * 0.001) for i in range(1, 22)]
+#    row.extend(sensors)
+#    stream_data.append(row)
+
+#for row in stream_data:
+#    rul = predict_rul(row)
+#    print(f"Engine ID: {int(row[0])}, Time: {int(row[1])}, Predicted RUL: {rul:.2f}")
